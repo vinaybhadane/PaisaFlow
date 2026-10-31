@@ -4,15 +4,17 @@ Integrates active facts, recurring obligations, period financial aggregations,
 and historical snapshots into a cohesive Living Money Model using AsyncSession.
 """
 
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, Dict, Optional
 import uuid
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.intelligence.living_model.fact_resolver import FinancialFactResolver
 from backend.app.intelligence.living_model.profile_builder import ProfileBuilder
 from backend.app.intelligence.living_model.snapshots import SnapshotManager
 from backend.app.intelligence.recurring.commitment_service import RecurringCommitmentService
+from backend.app.models.transaction import Transaction
 
 
 class LivingMoneyModelEngine:
@@ -49,6 +51,27 @@ class LivingMoneyModelEngine:
         summary = await self.profile_builder.build_summary(
             db, user_id, period_start=period_start, period_end=target_date
         )
+
+        # If current calendar month has no statement transactions, default to latest active statement month
+        if summary.coverage.transaction_count == 0:
+            latest_tx_stmt = (
+                select(Transaction.transaction_date)
+                .where(
+                    Transaction.user_id == user_id,
+                    Transaction.is_excluded.is_(False),
+                )
+                .order_by(Transaction.transaction_date.desc())
+                .limit(1)
+            )
+            latest_res = await db.execute(latest_tx_stmt)
+            latest_date = latest_res.scalar_one_or_none()
+            if latest_date and latest_date < period_start:
+                active_month_start = latest_date.replace(day=1)
+                next_m = (active_month_start.replace(day=28) + timedelta(days=4)).replace(day=1)
+                active_month_end = next_m - timedelta(days=1)
+                summary = await self.profile_builder.build_summary(
+                    db, user_id, period_start=active_month_start, period_end=active_month_end
+                )
 
         # 3. Fetch user's active recurring commitments
         commitments = await self.commitment_service.get_user_commitments(

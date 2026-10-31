@@ -5,6 +5,8 @@ observation linking, and price change tracking using AsyncSession.
 """
 
 from decimal import Decimal
+import logging
+import traceback
 from typing import List, Optional
 import uuid
 from sqlalchemy import select
@@ -19,6 +21,8 @@ from backend.app.models.recurring_commitment import (
     RecurringObservation,
 )
 from backend.app.models.transaction import Transaction
+
+logger = logging.getLogger(__name__)
 
 
 class RecurringCommitmentService:
@@ -38,6 +42,7 @@ class RecurringCommitmentService:
         # Fetch user's eligible transactions
         tx_stmt = (
             select(Transaction)
+            .options(selectinload(Transaction.merchant))
             .where(
                 Transaction.user_id == user_id,
                 Transaction.is_excluded.is_(False),
@@ -147,6 +152,20 @@ class RecurringCommitmentService:
                     db.add(new_pc)
 
             persisted_commitments.append(commitment)
+
+        # Run Gemini AI subscription intelligence to detect subscriptions from descriptions
+        # and automatically track next billing dates predicted from price and debited date
+        try:
+            from backend.app.intelligence.recurring.gemini_subscription_service import GeminiSubscriptionService
+            sub_service = GeminiSubscriptionService()
+            gemini_commitments = await sub_service.process_and_persist_subscriptions(db, user_id, transactions)
+            existing_ids = {c.id for c in persisted_commitments}
+            for gc in gemini_commitments:
+                if gc.id not in existing_ids:
+                    persisted_commitments.append(gc)
+                    existing_ids.add(gc.id)
+        except Exception as e:
+            logger.error(f"Error running Gemini subscription detection: {e}\n{traceback.format_exc()}")
 
         await db.commit()
         return persisted_commitments

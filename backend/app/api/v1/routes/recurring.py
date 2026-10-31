@@ -64,6 +64,11 @@ def enrich_commitment_response(commitment: RecurringCommitment) -> RecurringComm
     response_model=ApiResponse[List[RecurringCommitmentResponse]],
     summary="List recurring commitments with optional status or cadence filters",
 )
+@router.get(
+    "/commitments",
+    response_model=ApiResponse[List[RecurringCommitmentResponse]],
+    include_in_schema=False,
+)
 async def list_commitments(
     status_filter: Optional[str] = Query(None, alias="status", description="Filter by status"),
     cadence: Optional[str] = Query(None, description="Filter by cadence"),
@@ -82,6 +87,11 @@ async def list_commitments(
     "/detect",
     response_model=ApiResponse[List[RecurringCommitmentResponse]],
     summary="Trigger on-demand recurring pattern detection across transactions",
+)
+@router.post(
+    "/detect-subscriptions",
+    response_model=ApiResponse[List[RecurringCommitmentResponse]],
+    summary="Trigger Gemini AI subscription scanning and next-date prediction",
 )
 async def detect_commitments(
     user_id: uuid.UUID = Depends(get_current_user_id),
@@ -112,6 +122,11 @@ async def list_price_changes(
     response_model=ApiResponse[RecurringCommitmentDetailResponse],
     summary="Get single recurring commitment detail with observations and price changes",
 )
+@router.get(
+    "/commitments/{commitment_id}",
+    response_model=ApiResponse[RecurringCommitmentDetailResponse],
+    include_in_schema=False,
+)
 async def get_commitment(
     commitment_id: uuid.UUID,
     user_id: uuid.UUID = Depends(get_current_user_id),
@@ -133,14 +148,23 @@ async def get_commitment(
     response_model=ApiResponse[RecurringCommitmentResponse],
     summary="Submit user review action (confirm, reject, review_required)",
 )
+@router.post(
+    "/commitments/{commitment_id}/review",
+    response_model=ApiResponse[RecurringCommitmentResponse],
+    include_in_schema=False,
+)
 async def review_commitment(
     commitment_id: uuid.UUID,
-    payload: CommitmentReviewRequest,
+    payload: Optional[CommitmentReviewRequest] = None,
+    action: Optional[str] = Query(None, description="Action query param fallback"),
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[RecurringCommitmentResponse]:
     """Confirm, reject, or request review for a detected recurring commitment."""
-    c = await service.review_commitment(db, user_id, commitment_id, payload.action)
+    action_to_use = payload.action if payload and payload.action else action
+    if not action_to_use:
+        action_to_use = "confirm"
+    c = await service.review_commitment(db, user_id, commitment_id, action_to_use)
     return ApiResponse(data=enrich_commitment_response(c))
 
 

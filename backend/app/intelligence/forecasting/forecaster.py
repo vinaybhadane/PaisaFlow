@@ -8,7 +8,7 @@ Strict rules (from docs/10_FINANCIAL_LOGIC.md and docs/09_AI_INTELLIGENCE_ENGINE
 """
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import List, Optional
 import uuid
@@ -82,9 +82,23 @@ class FinancialForecaster:
             db, user_id, period_start=curr_m_start, period_end=today
         )
 
-        # 2. Check data coverage
+        # If beginning of month has insufficient transactions, use trailing 30 days for run-rate
+        if summary.coverage.transaction_count < 3:
+            trailing_start = today - timedelta(days=30)
+            summary = await self.profile_builder.build_summary(
+                db, user_id, period_start=trailing_start, period_end=today
+            )
+
+        # 2. Check active facts and data coverage
+        active_facts = await self.fact_resolver.get_active_facts_for_date(db, user_id, as_of_date=today)
+        confirmed_income_fact = next(
+            (f for f in active_facts if f.fact_type == "income" and f.source_type == "user_confirmed"),
+            None,
+        )
+        has_income = (confirmed_income_fact is not None) or (summary.income_total > Decimal("0.00"))
         coverage_tx_count = summary.coverage.transaction_count
-        if coverage_tx_count < 3 and summary.income_total == Decimal("0.00"):
+
+        if coverage_tx_count < 3 and not has_income:
             return ForecastResult(
                 generated_date=today,
                 horizon_months=horizon_months,
@@ -107,11 +121,6 @@ class FinancialForecaster:
             )
 
         # 3. Determine baseline income (prefer user-confirmed fact)
-        active_facts = await self.fact_resolver.get_active_facts_for_date(db, user_id, as_of_date=today)
-        confirmed_income_fact = next(
-            (f for f in active_facts if f.fact_type == "income" and f.source_type == "user_confirmed"),
-            None,
-        )
 
         baseline_income = (
             confirmed_income_fact.amount

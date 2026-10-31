@@ -110,16 +110,24 @@ class ImportService:
             RejectedRowSchema(**r) for r in preview_dict.get("rejected_rows", [])
         ]
 
+        for r in valid_rows:
+            if not r.resolved_merchant:
+                r.resolved_merchant = r.merchant_name
+            r.is_duplicate = r.duplicate_status in ("potential_duplicate", "exact_duplicate")
+
+        total_cnt = preview_dict.get("valid_count", len(valid_rows))
         return ImportPreviewResponse(
             import_id=batch.id,
             status=batch.status,
             total_rows=preview_dict.get("total_rows", batch.total_rows),
-            valid_count=preview_dict.get("valid_count", len(valid_rows)),
+            valid_count=total_cnt,
             rejected_count=preview_dict.get("rejected_count", len(rejected_rows)),
             duplicate_count=preview_dict.get("duplicate_count", 0),
             warnings=preview_dict.get("warnings", []),
             valid_rows=valid_rows,
             rejected_rows=rejected_rows,
+            candidates=valid_rows,
+            total_candidates=total_cnt,
         )
 
     async def confirm_import(
@@ -250,6 +258,44 @@ class ImportService:
 
         await db.commit()
         await db.refresh(batch)
+
+        # Trigger AI Subscription Intelligence & Recurring Detection automatically
+        try:
+            from backend.app.intelligence.recurring.commitment_service import RecurringCommitmentService
+            rec_service = RecurringCommitmentService()
+            await rec_service.run_detection_for_user(db, user_id=user_id)
+        except Exception as e:
+            logger.warning(f"Automatic recurring & subscription detection on import failed: {e}")
+
+        # Infer financial facts from committed transactions (e.g. salary/income)
+        try:
+            income_txs = [
+                t
+                for t in transactions_to_insert
+                if t.direction == "credit"
+                and t.transaction_type in ("income", "salary")
+                and not t.is_excluded
+            ]
+            if income_txs:
+                from backend.app.intelligence.living_model.fact_resolver import FinancialFactResolver
+                f_resolver = FinancialFactResolver()
+                active_facts = await f_resolver.get_active_facts_for_date(db, user_id)
+                if not any(f.fact_type == "income" for f in active_facts):
+                    latest_inc = max(income_txs, key=lambda t: t.transaction_date)
+                    await f_resolver.create_fact(
+                        db=db,
+                        user_id=user_id,
+                        fact_type="income",
+                        label=latest_inc.normalized_description or "Monthly Salary",
+                        amount=latest_inc.amount,
+                        currency=latest_inc.currency,
+                        source_type="transaction_inferred",
+                        effective_from=latest_inc.transaction_date,
+                        confidence="high",
+                    )
+                    await db.commit()
+        except Exception as e:
+            logger.warning(f"Error inferring income fact on import: {e}")
 
         return ImportConfirmResponse(
             import_id=batch.id,

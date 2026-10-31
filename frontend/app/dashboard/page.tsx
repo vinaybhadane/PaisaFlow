@@ -65,6 +65,40 @@ function formatCurrency(val: string | number) {
   }).format(num);
 }
 
+function renderFormattedMessage(text: string, isUser = false) {
+  if (!text) return null;
+  const lines = text.split("\n");
+
+  return (
+    <div className="space-y-1.5">
+      {lines.map((line, lineIdx) => {
+        if (!line.trim()) {
+          return <div key={lineIdx} className="h-1.5" />;
+        }
+        const parts = line.split(/(\*\*.*?\*\*)/g);
+        return (
+          <p key={lineIdx} className="leading-relaxed">
+            {parts.map((part, partIdx) => {
+              if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
+                const boldText = part.slice(2, -2);
+                return (
+                  <strong
+                    key={partIdx}
+                    className={isUser ? "font-bold text-black" : "font-bold text-white"}
+                  >
+                    {boldText}
+                  </strong>
+                );
+              }
+              return <span key={partIdx}>{part}</span>;
+            })}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function GoogleLogo({ className }: { className?: string }) {
   return (
     <svg className={className || "h-4 w-4"} viewBox="0 0 24 24">
@@ -144,6 +178,7 @@ export default function DashboardPage() {
   // Recurring Commitments State
   const [commitments, setCommitments] = useState<RecurringCommitmentItem[]>([]);
   const [reviewingCommitmentId, setReviewingCommitmentId] = useState<string | null>(null);
+  const [detectingSubscriptions, setDetectingSubscriptions] = useState<boolean>(false);
 
   // Insights, Spending & Forecasting State
   const [insights, setInsights] = useState<FinancialInsight[]>([]);
@@ -300,7 +335,12 @@ export default function DashboardPage() {
       const res = await paisaApi.uploadStatement(formData);
       const preview = await paisaApi.getImportPreview(res.id);
       setImportPreview(preview);
-      setImportMessage(`Statement parsed: ${preview.total_candidates} transactions extracted.`);
+      const candidatesCount =
+        preview.total_candidates ??
+        preview.valid_count ??
+        preview.total_rows ??
+        (preview.candidates?.length || preview.valid_rows?.length || 0);
+      setImportMessage(`Statement parsed: ${candidatesCount} transactions extracted.`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed";
       setImportMessage(`Error: ${msg}`);
@@ -374,6 +414,19 @@ export default function DashboardPage() {
       console.error("Commitment review error:", err);
     } finally {
       setReviewingCommitmentId(null);
+    }
+  };
+
+  const handleDetectSubscriptions = async () => {
+    setDetectingSubscriptions(true);
+    try {
+      const detected = await paisaApi.detectSubscriptions();
+      setCommitments(detected);
+      await loadAllData();
+    } catch (err) {
+      console.error("Subscription detection error:", err);
+    } finally {
+      setDetectingSubscriptions(false);
     }
   };
 
@@ -916,68 +969,106 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Pre-Commit Preview Table */}
-                {importPreview && (
-                  <div className="rounded-3xl border border-white/15 bg-[#0A0A0A] p-7 space-y-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
-                      <div>
-                        <h3 className="font-semibold text-lg text-white">Import Preview</h3>
-                        <p className="text-xs text-neutral-400">
-                          {importPreview.total_candidates} candidates extracted, {importPreview.duplicate_count} duplicates detected.
-                        </p>
-                      </div>
-                      <button
-                        onClick={handleConfirmImport}
-                        disabled={importConfirming}
-                        className="rounded-full bg-white px-6 py-2 text-xs font-semibold text-black hover:bg-neutral-200 disabled:opacity-50 transition shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer"
-                      >
-                        {importConfirming ? "Committing..." : "Confirm & Commit to Model"}
-                      </button>
-                    </div>
+                {importPreview && (() => {
+                  const candidatesList = importPreview.candidates || importPreview.valid_rows || [];
+                  const totalCount =
+                    importPreview.total_candidates ??
+                    importPreview.valid_count ??
+                    importPreview.total_rows ??
+                    candidatesList.length;
+                  const duplicateCount = importPreview.duplicate_count ?? 0;
 
-                    <div className="w-full overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead className="border-b border-white/10 text-neutral-400 uppercase tracking-wider font-mono">
-                          <tr>
-                            <th className="py-2.5 px-3">Date</th>
-                            <th className="py-2.5 px-3">Description</th>
-                            <th className="py-2.5 px-3">Merchant</th>
-                            <th className="py-2.5 px-3">Direction</th>
-                            <th className="py-2.5 px-3 text-right">Amount</th>
-                            <th className="py-2.5 px-3">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                          {importPreview.candidates.map((row: ImportCandidate, idx: number) => (
-                            <tr key={idx} className="hover:bg-white/[0.02]">
-                              <td className="py-2.5 px-3 font-mono text-neutral-300">{row.transaction_date}</td>
-                              <td className="py-2.5 px-3 text-white max-w-[220px] truncate">{row.original_description}</td>
-                              <td className="py-2.5 px-3 text-neutral-300">{row.resolved_merchant || "—"}</td>
-                              <td className="py-2.5 px-3">
-                                <span
-                                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                    row.direction === "credit"
-                                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                                      : "bg-neutral-800 text-neutral-300"
-                                  }`}
-                                >
-                                  {row.direction}
-                                </span>
-                              </td>
-                              <td className="py-2.5 px-3 text-right font-semibold text-white">
-                                {formatCurrency(row.amount)}
-                              </td>
-                              <td className="py-2.5 px-3">
-                                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] text-neutral-300">
-                                  {row.is_duplicate ? "Duplicate" : "New"}
-                                </span>
-                              </td>
+                  return (
+                    <div className="rounded-3xl border border-white/15 bg-[#0A0A0A] p-7 space-y-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
+                        <div>
+                          <h3 className="font-semibold text-lg text-white">Import Preview</h3>
+                          <p className="text-xs text-neutral-400">
+                            {totalCount} candidate{totalCount === 1 ? "" : "s"} extracted, {duplicateCount} duplicate{duplicateCount === 1 ? "" : "s"} detected.
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleConfirmImport}
+                          disabled={importConfirming || candidatesList.length === 0}
+                          className="rounded-full bg-white px-6 py-2 text-xs font-semibold text-black hover:bg-neutral-200 disabled:opacity-50 transition shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer"
+                        >
+                          {importConfirming ? "Committing..." : "Confirm & Commit to Model"}
+                        </button>
+                      </div>
+
+                      <div className="w-full overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="border-b border-white/10 text-neutral-400 uppercase tracking-wider font-mono">
+                            <tr>
+                              <th className="py-2.5 px-3">Date</th>
+                              <th className="py-2.5 px-3">Description</th>
+                              <th className="py-2.5 px-3">Merchant</th>
+                              <th className="py-2.5 px-3">Direction</th>
+                              <th className="py-2.5 px-3 text-right">Amount</th>
+                              <th className="py-2.5 px-3">Status</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {candidatesList.length === 0 ? (
+                              <tr>
+                                <td colSpan={6} className="py-8 text-center text-neutral-500">
+                                  No transaction candidates found in statement.
+                                </td>
+                              </tr>
+                            ) : (
+                              candidatesList.map((row: ImportCandidate, idx: number) => {
+                                const isDuplicate =
+                                  row.is_duplicate ||
+                                  (row.duplicate_status && row.duplicate_status !== "unique");
+                                const merchantDisplay =
+                                  row.resolved_merchant || row.merchant_name || "—";
+
+                                return (
+                                  <tr key={row.row_id || idx} className="hover:bg-white/[0.02]">
+                                    <td className="py-2.5 px-3 font-mono text-neutral-300">
+                                      {row.transaction_date}
+                                    </td>
+                                    <td className="py-2.5 px-3 text-white max-w-[220px] truncate">
+                                      {row.original_description}
+                                    </td>
+                                    <td className="py-2.5 px-3 text-neutral-300">
+                                      {merchantDisplay}
+                                    </td>
+                                    <td className="py-2.5 px-3">
+                                      <span
+                                        className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                          row.direction === "credit"
+                                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                            : "bg-neutral-800 text-neutral-300"
+                                        }`}
+                                      >
+                                        {row.direction}
+                                      </span>
+                                    </td>
+                                    <td className="py-2.5 px-3 text-right font-semibold text-white">
+                                      {formatCurrency(row.amount)}
+                                    </td>
+                                    <td className="py-2.5 px-3">
+                                      <span
+                                        className={`rounded-full border px-2 py-0.5 text-[10px] ${
+                                          isDuplicate
+                                            ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                                            : "border-white/15 bg-white/5 text-neutral-300"
+                                        }`}
+                                      >
+                                        {isDuplicate ? "Duplicate" : "New"}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             )}
 
@@ -1243,13 +1334,23 @@ export default function DashboardPage() {
             {/* ========================================================================= */}
             {activeTab === "recurring" && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-semibold tracking-tight text-white">
-                    Subscriptions & Recurring Obligations
-                  </h2>
-                  <p className="mt-1 text-sm text-neutral-400">
-                    Detected with calendar-aware cadence tracking from your statement transactions.
-                  </p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight text-white">
+                      Subscriptions & Recurring Obligations
+                    </h2>
+                    <p className="mt-1 text-sm text-neutral-400">
+                      Gemini AI subscription intelligence with automatic next billing date tracking.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleDetectSubscriptions}
+                    disabled={detectingSubscriptions}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition disabled:opacity-50 cursor-pointer shadow-sm"
+                  >
+                    <Sparkles className={`h-3.5 w-3.5 ${detectingSubscriptions ? "animate-spin text-amber-300" : "text-amber-400"}`} />
+                    {detectingSubscriptions ? "Gemini Scanning..." : "AI Scan Subscriptions"}
+                  </button>
                 </div>
 
                 {commitments.length > 0 ? (
@@ -1281,6 +1382,22 @@ export default function DashboardPage() {
                             Monthly equivalent: {formatCurrency(c.monthly_planning_equivalent)}
                           </p>
 
+                          {/* Next Predicted Debited Date */}
+                          <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.02] p-3 space-y-1.5">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-neutral-400">Next Expected Date:</span>
+                              <span className="font-mono font-semibold text-emerald-400">
+                                {c.next_expected_date ? String(c.next_expected_date) : "Predicting..."}
+                              </span>
+                            </div>
+                            {c.last_observed_date && (
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className="text-neutral-500">Last Debited:</span>
+                                <span className="font-mono text-neutral-400">{String(c.last_observed_date)}</span>
+                              </div>
+                            )}
+                          </div>
+
                           {c.evidence && typeof c.evidence === "object" && "price_shift" in c.evidence && (
                             <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
                               Amount shift detected: {String((c.evidence as Record<string, unknown>).price_shift)}
@@ -1309,12 +1426,19 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-white/15 rounded-3xl">
-                    <RefreshCw className="h-8 w-8 text-neutral-500 mb-3" />
+                    <Sparkles className="h-8 w-8 text-amber-400/80 mb-3" />
                     <p className="text-base font-medium text-white">No recurring obligations detected yet</p>
                     <p className="mt-1.5 text-xs text-neutral-400 max-w-md">
-                      Commit multiple months of statement records to allow the cadence detection engine
-                      to cluster recurring intervals.
+                      Upload your statement or click below to have Gemini AI analyze your transaction descriptions, extract subscriptions, and automatically predict their next billing dates.
                     </p>
+                    <button
+                      onClick={handleDetectSubscriptions}
+                      disabled={detectingSubscriptions}
+                      className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-xs font-semibold text-black hover:bg-neutral-200 transition disabled:opacity-50 cursor-pointer"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {detectingSubscriptions ? "Scanning with Gemini..." : "Scan Statement for Subscriptions"}
+                    </button>
                   </div>
                 )}
               </div>
@@ -1341,12 +1465,12 @@ export default function DashboardPage() {
                       <h3 className="font-semibold text-base text-white">Needs vs. Wants Distribution</h3>
                       <div className="mt-6 flex h-3 w-full overflow-hidden rounded-full bg-white/10">
                         <div
-                          style={{ width: `${spending.essential_percentage || 50}%` }}
+                          style={{ width: `${Number(spending.essential_percentage || 50)}%` }}
                           className="bg-white"
                           title="Essential Needs"
                         />
                         <div
-                          style={{ width: `${spending.discretionary_percentage || 50}%` }}
+                          style={{ width: `${Number(spending.discretionary_percentage || 50)}%` }}
                           className="bg-neutral-600"
                           title="Discretionary Wants"
                         />
@@ -1354,11 +1478,11 @@ export default function DashboardPage() {
                       <div className="mt-4 flex justify-between text-xs text-neutral-400">
                         <span className="flex items-center gap-2">
                           <span className="h-2 w-2 rounded-full bg-white" />
-                          Essential: {formatCurrency(spending.essential_spend)} ({spending.essential_percentage?.toFixed(0)}%)
+                          Essential: {formatCurrency(spending.essential_spend)} ({Number(spending.essential_percentage || 0).toFixed(0)}%)
                         </span>
                         <span className="flex items-center gap-2">
                           <span className="h-2 w-2 rounded-full bg-neutral-600" />
-                          Discretionary: {formatCurrency(spending.discretionary_spend)} ({spending.discretionary_percentage?.toFixed(0)}%)
+                          Discretionary: {formatCurrency(spending.discretionary_spend)} ({Number(spending.discretionary_percentage || 0).toFixed(0)}%)
                         </span>
                       </div>
                     </div>
@@ -1661,7 +1785,7 @@ export default function DashboardPage() {
                               : "border border-white/15 bg-white/[0.04] text-neutral-200"
                           }`}
                         >
-                          <div className="whitespace-pre-wrap">{msg.content}</div>
+                          <div>{renderFormattedMessage(msg.content, msg.sender === "user")}</div>
 
                           {/* Grounded Statement Facts Box */}
                           {msg.grounded_facts && msg.grounded_facts.length > 0 && (

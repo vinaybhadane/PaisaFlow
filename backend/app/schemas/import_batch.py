@@ -17,6 +17,7 @@ class NormalizedRowSchema(BaseModel):
     original_description: str
     normalized_description: str
     merchant_name: Optional[str] = None
+    resolved_merchant: Optional[str] = None
     amount: Decimal
     currency: str = "INR"
     direction: str
@@ -26,6 +27,7 @@ class NormalizedRowSchema(BaseModel):
     duplicate_fingerprint: str
     warnings: List[str] = Field(default_factory=list)
     is_included_by_default: bool = True
+    is_duplicate: bool = False
 
 
 class RejectedRowSchema(BaseModel):
@@ -70,6 +72,8 @@ class ImportPreviewResponse(BaseModel):
     warnings: List[str] = Field(default_factory=list)
     valid_rows: List[NormalizedRowSchema] = Field(default_factory=list)
     rejected_rows: List[RejectedRowSchema] = Field(default_factory=list)
+    candidates: List[NormalizedRowSchema] = Field(default_factory=list)
+    total_candidates: Optional[int] = None
 
 
 class ImportConfirmRequest(BaseModel):

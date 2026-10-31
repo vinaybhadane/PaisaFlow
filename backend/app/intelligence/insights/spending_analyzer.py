@@ -126,6 +126,29 @@ class SpendingAnalyzer:
 
         # 1. Fetch current and previous period transactions
         current_txs = await self._fetch_eligible_transactions(db, user_id, period_start, period_end)
+
+        # If current calendar month has no statement transactions, default to latest active statement month
+        if not current_txs:
+            latest_tx_stmt = (
+                select(Transaction.transaction_date)
+                .where(
+                    Transaction.user_id == user_id,
+                    Transaction.is_excluded.is_(False),
+                )
+                .order_by(Transaction.transaction_date.desc())
+                .limit(1)
+            )
+            latest_res = await db.execute(latest_tx_stmt)
+            latest_date = latest_res.scalar_one_or_none()
+            if latest_date and latest_date < period_start:
+                period_start = latest_date.replace(day=1)
+                next_month = (period_start.replace(day=28) + timedelta(days=4)).replace(day=1)
+                period_end = next_month - timedelta(days=1)
+                duration_days = (period_end - period_start).days + 1
+                prev_end = period_start - timedelta(days=1)
+                prev_start = prev_end - timedelta(days=duration_days - 1)
+                current_txs = await self._fetch_eligible_transactions(db, user_id, period_start, period_end)
+
         prev_txs = await self._fetch_eligible_transactions(db, user_id, prev_start, prev_end)
 
         # 2. Compute current period category and merchant spend

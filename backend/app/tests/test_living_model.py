@@ -611,3 +611,30 @@ async def test_list_demo_personas_endpoint(client_with_db: AsyncSession, test_db
     assert data[0]["persona_key"] == "asha_mehta"
     assert data[0]["display_name"] == "Asha Mehta (Demo)"
     assert data[0]["is_synthetic"] is True
+
+
+@pytest.mark.asyncio
+async def test_gemini_subscription_service_fallback_and_next_date():
+    """Verify subscription detection from description and predictive next billing dates."""
+    from backend.app.intelligence.recurring.gemini_subscription_service import GeminiSubscriptionService
+
+    service = GeminiSubscriptionService()
+
+    # 1. Test Netflix monthly subscription identification
+    det_netflix = service._fallback_identify_subscription("NETFLIX MUMBAI IN 918239", Decimal("649.00"))
+    assert det_netflix is not None
+    assert det_netflix["is_subscription"] is True
+    assert det_netflix["subscription_name"] == "Netflix"
+    assert det_netflix["cadence"] == "monthly"
+
+    # 2. Test Airtel Broadband identification
+    det_airtel = service._fallback_identify_subscription("AIRTEL FIBER BROADBAND BILL", Decimal("1179.00"))
+    assert det_airtel is not None
+    assert det_airtel["subscription_name"] == "Airtel Broadband"
+    assert det_airtel["cadence"] == "monthly"
+
+    # 3. Test predictive next billing date calculation
+    debited_date = date(2026, 10, 5)
+    next_date = service.calculate_next_expected_date(debited_date, "monthly")
+    assert next_date > date.today()
+    assert next_date.day == 5
