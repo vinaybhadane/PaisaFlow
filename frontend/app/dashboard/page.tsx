@@ -626,11 +626,13 @@ export default function DashboardPage() {
             <Link href="/" className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 backdrop-blur-md">
                 <Image
-                  src="/PaisaFlow.png"
+                  src="/PaisaFlow-white.png"
                   alt="PaisaFlow Logo"
                   width={32}
                   height={32}
-                  className="h-7 w-7 object-contain brightness-0 invert"
+                  unoptimized
+                  priority
+                  className="h-7 w-7 object-contain"
                 />
               </div>
               <span className="text-base font-bold tracking-[0.2em] text-white uppercase">
@@ -1978,6 +1980,8 @@ export default function DashboardPage() {
                                   alt={user.displayName || "User"}
                                   width={32}
                                   height={32}
+                                  unoptimized
+                                  referrerPolicy="no-referrer"
                                   className="h-full w-full object-cover"
                                 />
                               ) : (

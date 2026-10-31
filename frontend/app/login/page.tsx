@@ -105,12 +105,13 @@ export default function LoginPage() {
           <Link href="/" className="inline-flex items-center gap-3 group">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md transition-all group-hover:border-white/40 group-hover:bg-white/10">
               <Image
-                src="/PaisaFlow.png"
+                src="/PaisaFlow-white.png"
                 alt="PaisaFlow Logo"
                 width={36}
                 height={36}
-                className="h-8 w-8 object-contain brightness-0 invert"
+                unoptimized
                 priority
+                className="h-8 w-8 object-contain"
               />
             </div>
             <span className="text-base font-bold tracking-[0.25em] text-white uppercase">

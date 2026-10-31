@@ -200,12 +200,13 @@ export default function HomePage() {
           >
             <div className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 backdrop-blur-md transition-all duration-200 group-hover:border-white/40 group-hover:bg-white/10">
               <Image
-                src="/PaisaFlow.png"
+                src="/PaisaFlow-white.png"
                 alt="PaisaFlow Logo"
                 width={32}
                 height={32}
-                className="h-7 w-7 object-contain brightness-0 invert transition-transform duration-200 group-hover:scale-105"
+                unoptimized
                 priority
+                className="h-7 w-7 object-contain transition-transform duration-200 group-hover:scale-105"
               />
             </div>
             <span className="text-sm font-bold tracking-[0.22em] text-white uppercase">
@@ -794,11 +795,12 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 sm:px-8 md:flex-row">
           <div className="flex items-center gap-3">
             <Image
-              src="/PaisaFlow.png"
+              src="/PaisaFlow-white.png"
               alt="PaisaFlow Logo"
               width={30}
               height={30}
-              className="h-7 w-7 object-contain brightness-0 invert"
+              unoptimized
+              className="h-7 w-7 object-contain"
             />
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-white">
               PAISAFLOW
