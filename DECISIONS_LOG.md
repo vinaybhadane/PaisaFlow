@@ -279,4 +279,34 @@
   3. Retains 100% test pass rate (80/80 backend pytest tests pass).
 - Related docs: `docs/06_TECH_STACK.md`, `docs/08_DATABASE_SCHEMA.md`, `docs/16_AZURE_DEPLOYMENT.md`.
 
+## ADR-017 — Vercel Multiple-Services Deployment Architecture, Gemini 3.5 Coach Visual Redesign & Dynamic Statement Month Resolution
+- Status: Accepted
+- Date: 2026-11-01
+- Context:
+  1. User requested deploying PaisaFlow to Vercel as a single repository containing multiple services (`backend` FastAPI and `frontend` Next.js).
+  2. Overview dashboard numbers remained at zero after uploading a statement if the current calendar month differed from the statement period (e.g. statement was for previous month or local time rolled into a new month).
+  3. AI Coach needed to render clean bold typography without raw asterisks, modern scrollable viewport, auto-scrolling to newest responses, and an elevated professional interface.
+  4. User requested AI-powered subscription categorization and next payment date prediction using Gemini 3.5 Flash Lite with deterministic fallback.
+- Decision:
+  1. **Vercel Multi-Service Configuration**:
+     - Configured `vercel.json` defining `backend` (FastAPI) and `frontend` (Next.js) services.
+     - Defined internal service binding on `frontend` injecting `BACKEND_URL` from `backend`.
+     - Created root ASGI entrypoints `backend/main.py` and `backend/index.py`.
+     - Standardized API base URL resolution in `frontend/lib/api.ts` to consume `BACKEND_URL` on server-side functions and relative `/api/v1` on client-side production.
+     - Configured FastAPI CORS to accept `allow_origin_regex=r"^https://.*\.vercel\.app$"`.
+  2. **Dynamic Statement Month Resolution**:
+     - Updated `LivingMoneyModelEngine` and `SpendingAnalyzer` to dynamically detect and resolve to the latest active statement month when the current calendar month has zero transactions.
+     - Updated `ImportService` to automatically infer and generate active `income` facts upon confirming salary/credit transactions.
+  3. **AI Financial Coach & Dashboard Aesthetics**:
+     - Built `renderFormattedMessage` to parse markdown bold `**text**` into `<strong className="font-bold text-white">` without raw stars.
+     - Implemented fixed scrollable viewport (`h-[640px]`) with smooth auto-scroll to `messagesEndRef` upon receipt of coach messages.
+     - Modernized Overview KPI cards with ambient glowing accents, icon badges (`TrendingUp`, `TrendingDown`, `CreditCard`, `Sparkles`), and verified provenance badges.
+  4. **Gemini Subscription Detection & Date Prediction**:
+     - Created `GeminiSubscriptionService` using `gemini-3.5-flash-lite` with calendar-aware next billing date prediction and deterministic fallback.
+- Consequences:
+  1. Monorepo deploys directly to Vercel as unified services under a single domain.
+  2. Overview immediately reflects statement totals regardless of calendar boundary shifts.
+  3. 100% test coverage maintained: 81/81 pytest tests pass, 0 TypeScript errors, 0 ESLint errors.
+- Related docs: `docs/06_TECH_STACK.md`, `docs/09_AI_INTELLIGENCE_ENGINE.md`, `docs/13_API_SPECIFICATION.md`.
+
 Add new ADRs below. Supersede accepted decisions explicitly rather than silently rewriting them.

@@ -1,0 +1,20 @@
+# Documentation & Dev logs
+docs/
+DECISIONS_LOG.md
+EXPERIMENT_LOG.md
+PROGRESS.md
+AGENTS.md
+
+# Offline Media & Tests
+/landingBG.mp4
+backend/app/tests/
+backend/scripts/
+backend/requirements-dev.txt
+
+# Databases & local state
+*.db
+*.sqlite
+*.sqlite3
+.pytest_cache/
+.ruff_cache/
+

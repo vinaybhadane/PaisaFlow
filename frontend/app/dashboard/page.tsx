@@ -215,6 +215,19 @@ export default function DashboardPage() {
     "How can I improve my savings rate from my current cash flow?",
   ]);
 
+  // AI Coach Auto-Scroll Ref
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "coach") {
+      scrollToBottom();
+    }
+  }, [coachMessages, coachLoading, activeTab, scrollToBottom]);
+
   // Overall Loading & Error States
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -774,62 +787,111 @@ export default function DashboardPage() {
             {/* ========================================================================= */}
             {activeTab === "overview" && (
               <div className="space-y-8">
-                {/* KPI Metrics Grid */}
+                {/* KPI Metrics Grid with Ambient Highlights */}
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-2xl border border-white/15 bg-[#0A0A0A] p-6 shadow-sm">
-                    <p className="text-xs font-medium text-neutral-400">Total Inflow (Statement)</p>
-                    <p className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                  {/* Total Inflow */}
+                  <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#131313] to-[#080808] p-6 shadow-xl hover:border-emerald-500/30 transition-all duration-300">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium tracking-wide text-neutral-400">Total Inflow</span>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                        <TrendingUp className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <p className="mt-3 text-3xl font-bold tracking-tight text-white">
                       {formatCurrency(profile?.current_period_summary?.income_total || 0)}
                     </p>
-                    <p className="mt-2 text-xs text-neutral-500">
-                      {transactionsTotal > 0 ? "From uploaded statement credits" : "Awaiting statement upload"}
-                    </p>
+                    <div className="mt-4 flex items-center gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle2 className="h-3 w-3" /> Inflow
+                      </span>
+                      <span className="text-[11px] text-neutral-500 truncate">
+                        {transactionsTotal > 0 ? "Verified from statement credits" : "Awaiting statement upload"}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/15 bg-[#0A0A0A] p-6 shadow-sm">
-                    <p className="text-xs font-medium text-neutral-400">Total Outflow (Statement)</p>
-                    <p className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                  {/* Total Outflow */}
+                  <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#131313] to-[#080808] p-6 shadow-xl hover:border-rose-500/30 transition-all duration-300">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium tracking-wide text-neutral-400">Total Outflow</span>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400">
+                        <TrendingDown className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <p className="mt-3 text-3xl font-bold tracking-tight text-white">
                       {formatCurrency(profile?.current_period_summary?.expense_net || 0)}
                     </p>
-                    <p className="mt-2 text-xs text-neutral-500">
-                      {transactionsTotal > 0 ? "From statement debits & refunds" : "Awaiting statement upload"}
-                    </p>
+                    <div className="mt-4 flex items-center gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-400 border border-rose-500/20">
+                        <CreditCard className="h-3 w-3" /> Outflow
+                      </span>
+                      <span className="text-[11px] text-neutral-500 truncate">
+                        {transactionsTotal > 0 ? "Statement debits & adjustments" : "Awaiting statement upload"}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/15 bg-[#0A0A0A] p-6 shadow-sm">
-                    <p className="text-xs font-medium text-neutral-400">Net Surplus</p>
-                    <p className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                  {/* Net Surplus */}
+                  <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#131313] to-[#080808] p-6 shadow-xl hover:border-indigo-500/30 transition-all duration-300">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium tracking-wide text-neutral-400">Net Surplus</span>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400">
+                        <CreditCard className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <p className="mt-3 text-3xl font-bold tracking-tight text-white">
                       {formatCurrency(profile?.current_period_summary?.net_cash_flow || 0)}
                     </p>
-                    <p className="mt-2 text-xs text-neutral-500">
-                      {transactionsTotal > 0 ? "Deterministic net cash flow" : "Zero until statements committed"}
-                    </p>
+                    <div className="mt-4 flex items-center gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-semibold text-indigo-400 border border-indigo-500/20">
+                        <Check className="h-3 w-3" /> Deterministic
+                      </span>
+                      <span className="text-[11px] text-neutral-500 truncate">
+                        {transactionsTotal > 0 ? "Net monthly cash delta" : "Zero until statements committed"}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/15 bg-[#0A0A0A] p-6 shadow-sm">
-                    <p className="text-xs font-medium text-neutral-400">Cash Flow Savings Rate</p>
-                    <p className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                  {/* Cash Flow Savings Rate */}
+                  <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#131313] to-[#080808] p-6 shadow-xl hover:border-cyan-500/30 transition-all duration-300">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium tracking-wide text-neutral-400">Savings Rate</span>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <p className="mt-3 text-3xl font-bold tracking-tight text-white">
                       {profile?.current_period_summary?.savings_rate
                         ? `${profile.current_period_summary.savings_rate}%`
                         : "0.0%"}
                     </p>
-                    <p className="mt-2 text-xs text-neutral-500">
-                      {transactionsTotal > 0 ? "Surplus / Inflow ratio" : "Calculated from statement"}
-                    </p>
+                    <div className="mt-4 flex items-center gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-400 border border-cyan-500/20">
+                        <Layers className="h-3 w-3" /> Ratio
+                      </span>
+                      <span className="text-[11px] text-neutral-500 truncate">
+                        {transactionsTotal > 0 ? "Surplus / Inflow ratio" : "Calculated from statement"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Living Facts from Statement */}
-                <div className="rounded-3xl border border-white/15 bg-[#0A0A0A] p-7">
+                <div className="rounded-3xl border border-white/15 bg-gradient-to-b from-[#0F0F0F] to-[#070707] p-7 shadow-xl">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-5">
                     <div>
-                      <h3 className="text-lg font-semibold text-white">Active Statement Facts</h3>
-                      <p className="text-xs text-neutral-400">
-                        Extracted directly from your statement records with provenance tracking.
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-white">Active Statement Facts</h3>
+                        <span className="rounded-full border border-white/20 bg-white/5 px-2.5 py-0.5 text-[10px] font-medium text-neutral-300">
+                          Living Money Model
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-neutral-400">
+                        Extracted directly from your statement records with cryptographic provenance.
                       </p>
                     </div>
                     <span className="font-mono text-xs text-neutral-400">
-                      {profile?.active_facts?.length || 0} facts active
+                      {profile?.active_facts?.length || 0} active verified facts
                     </span>
                   </div>
 
@@ -838,7 +900,7 @@ export default function DashboardPage() {
                       {profile.active_facts.map((fact) => (
                         <div
                           key={fact.id}
-                          className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 hover:border-white/20 transition"
+                          className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#141414]/80 p-5 hover:border-white/25 transition-all duration-200 group"
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-mono text-xs uppercase tracking-wider text-neutral-400">
@@ -848,17 +910,20 @@ export default function DashboardPage() {
                               {fact.source_type}
                             </span>
                           </div>
-                          <p className="mt-3 text-xl font-semibold text-white">
+                          <p className="mt-3 text-2xl font-bold tracking-tight text-white">
                             {formatCurrency(fact.amount)}
                           </p>
-                          <p className="mt-2 text-xs leading-relaxed text-neutral-400">
-                            {fact.confidence ? `Confidence: ${fact.confidence}` : "Inferred from uploaded statement."}
-                          </p>
+                          <div className="mt-2.5 flex items-center gap-1.5 text-xs text-neutral-400">
+                            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                            <span className="truncate">
+                              {fact.confidence ? `Confidence: ${fact.confidence}` : "Inferred from uploaded statement."}
+                            </span>
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="mt-8 flex flex-col items-center justify-center p-8 text-center border border-dashed border-white/15 rounded-2xl">
+                    <div className="mt-8 flex flex-col items-center justify-center p-8 text-center border border-dashed border-white/15 rounded-2xl bg-white/[0.01]">
                       <FileText className="h-8 w-8 text-neutral-500 mb-3" />
                       <p className="text-sm font-medium text-neutral-300">No statement facts yet</p>
                       <p className="mt-1 text-xs text-neutral-500 max-w-md">
@@ -866,7 +931,7 @@ export default function DashboardPage() {
                       </p>
                       <button
                         onClick={() => setActiveTab("imports")}
-                        className="mt-4 rounded-full bg-white px-5 py-2 text-xs font-semibold text-black hover:bg-neutral-200 transition"
+                        className="mt-4 rounded-full bg-white px-5 py-2 text-xs font-semibold text-black hover:bg-neutral-200 transition cursor-pointer"
                       >
                         Upload Statement Now
                       </button>
@@ -878,47 +943,62 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div
                     onClick={() => setActiveTab("imports")}
-                    className="group cursor-pointer rounded-2xl border border-white/10 bg-[#0A0A0A] p-6 transition hover:border-white/30 hover:bg-[#111111]"
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-gradient-to-b from-[#111111] to-[#080808] p-6 transition-all duration-300 hover:border-white/30 hover:shadow-[0_0_25px_rgba(255,255,255,0.05)] flex flex-col justify-between"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white">
-                      <UploadCloud className="h-5 w-5" />
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white">
+                          <UploadCloud className="h-5 w-5" />
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-neutral-600 group-hover:text-white group-hover:translate-x-1 transition duration-200" />
+                      </div>
+                      <h4 className="mt-4 font-semibold text-base text-white group-hover:text-neutral-200">
+                        Import Financial Statement
+                      </h4>
+                      <p className="mt-1.5 text-xs text-neutral-400 leading-relaxed">
+                        Upload CSV or PDF statements to extract real transactions and update your model.
+                      </p>
                     </div>
-                    <h4 className="mt-4 font-semibold text-base text-white group-hover:text-neutral-200">
-                      Import Financial Statement
-                    </h4>
-                    <p className="mt-1.5 text-xs text-neutral-400">
-                      Upload CSV or PDF statements to extract real transactions and update your model.
-                    </p>
                   </div>
 
                   <div
                     onClick={() => setActiveTab("simulator")}
-                    className="group cursor-pointer rounded-2xl border border-white/10 bg-[#0A0A0A] p-6 transition hover:border-white/30 hover:bg-[#111111]"
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-gradient-to-b from-[#111111] to-[#080808] p-6 transition-all duration-300 hover:border-white/30 hover:shadow-[0_0_25px_rgba(255,255,255,0.05)] flex flex-col justify-between"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white">
-                      <Sliders className="h-5 w-5" />
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white">
+                          <Sliders className="h-5 w-5" />
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-neutral-600 group-hover:text-white group-hover:translate-x-1 transition duration-200" />
+                      </div>
+                      <h4 className="mt-4 font-semibold text-base text-white group-hover:text-neutral-200">
+                        Run What-If Simulation
+                      </h4>
+                      <p className="mt-1.5 text-xs text-neutral-400 leading-relaxed">
+                        Hypothesize expense cuts or new EMIs without altering your real records.
+                      </p>
                     </div>
-                    <h4 className="mt-4 font-semibold text-base text-white group-hover:text-neutral-200">
-                      Run What-If Simulation
-                    </h4>
-                    <p className="mt-1.5 text-xs text-neutral-400">
-                      Hypothesize expense cuts or new EMIs without altering your real records.
-                    </p>
                   </div>
 
                   <div
                     onClick={() => setActiveTab("coach")}
-                    className="group cursor-pointer rounded-2xl border border-white/10 bg-[#0A0A0A] p-6 transition hover:border-white/30 hover:bg-[#111111]"
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-gradient-to-b from-[#111111] to-[#080808] p-6 transition-all duration-300 hover:border-white/30 hover:shadow-[0_0_25px_rgba(255,255,255,0.05)] flex flex-col justify-between"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white">
-                      <Bot className="h-5 w-5" />
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white">
+                          <Bot className="h-5 w-5" />
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-neutral-600 group-hover:text-white group-hover:translate-x-1 transition duration-200" />
+                      </div>
+                      <h4 className="mt-4 font-semibold text-base text-white group-hover:text-neutral-200">
+                        Ask Gemini 3.5 Flash Lite
+                      </h4>
+                      <p className="mt-1.5 text-xs text-neutral-400 leading-relaxed">
+                        Conversational coaching grounded in your exact Decimal statement numbers.
+                      </p>
                     </div>
-                    <h4 className="mt-4 font-semibold text-base text-white group-hover:text-neutral-200">
-                      Ask Gemini 3.5 Flash Lite
-                    </h4>
-                    <p className="mt-1.5 text-xs text-neutral-400">
-                      Conversational coaching grounded in your exact Decimal statement numbers.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -1723,120 +1803,241 @@ export default function DashboardPage() {
             {/* ========================================================================= */}
             {activeTab === "coach" && (
               <div className="space-y-6">
+                {/* Coach Header Bar */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h2 className="text-2xl font-semibold tracking-tight text-white">
+                      <h2 className="text-2xl font-bold tracking-tight text-white">
                         AI Financial Coach
                       </h2>
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-0.5 text-xs font-semibold text-white">
-                        <Sparkles className="h-3 w-3" /> Gemini 3.5 Flash Lite Live
+                      <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Gemini 3.5 Flash Lite Live
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-neutral-400">
                       Grounded strictly in your uploaded statement facts with deterministic Decimal arithmetic.
                     </p>
                   </div>
-                  <button
-                    onClick={handleNewConversation}
-                    className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition cursor-pointer"
-                  >
-                    + New Thread
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleNewConversation}
+                      className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white hover:bg-white/15 hover:border-white/30 transition cursor-pointer shadow-sm"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      <span>+ New Thread</span>
+                    </button>
+                  </div>
                 </div>
 
-                {/* Suggested Prompts */}
-                <div className="rounded-3xl border border-white/15 bg-[#0A0A0A] p-5">
-                  <span className="text-xs font-mono uppercase tracking-wider text-neutral-400">
-                    Suggested Exploration Prompts:
-                  </span>
+                {/* Conversation Threads Pill Bar (if multiple threads exist) */}
+                {conversationList && conversationList.length > 0 && (
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 shrink-0">
+                      History:
+                    </span>
+                    {conversationList.slice(0, 5).map((conv) => {
+                      const isActive = activeConversationId === conv.id;
+                      return (
+                        <div
+                          key={conv.id}
+                          onClick={() => handleSelectConversation(conv.id)}
+                          className={`group flex items-center gap-2 rounded-full border px-3.5 py-1.5 transition cursor-pointer shrink-0 ${
+                            isActive
+                              ? "border-white/40 bg-white/15 text-white font-medium shadow-[0_0_15px_rgba(255,255,255,0.08)]"
+                              : "border-white/10 bg-white/[0.03] text-neutral-400 hover:border-white/25 hover:text-white"
+                          }`}
+                        >
+                          <MessageSquare className="h-3 w-3 shrink-0" />
+                          <span className="max-w-[140px] truncate text-xs">{conv.title}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteConversation(conv.id);
+                            }}
+                            className="text-neutral-500 hover:text-rose-400 transition"
+                            title="Delete thread"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Suggested Exploration Prompts */}
+                <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#111111] to-[#090909] p-5 shadow-lg">
+                  <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-neutral-400">
+                    <Sparkles className="h-3.5 w-3.5 text-neutral-400" />
+                    <span>Suggested Financial Inquiries:</span>
+                  </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {starterPrompts.map((prompt, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleSendCoachMessage(prompt)}
                         disabled={coachLoading}
-                        className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2 text-xs text-neutral-300 hover:border-white/30 hover:bg-white/10 hover:text-white transition disabled:opacity-50 text-left cursor-pointer"
+                        className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs text-neutral-300 hover:border-white/30 hover:bg-white/10 hover:text-white hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] transition disabled:opacity-50 text-left cursor-pointer"
                       >
-                        <MessageSquare className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
+                        <MessageSquare className="h-3.5 w-3.5 shrink-0 text-neutral-500" />
                         <span>{prompt}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Chat Feed */}
-                <div className="rounded-3xl border border-white/15 bg-[#0A0A0A] p-6 space-y-6">
-                  <div className="flex flex-col gap-6 min-h-[380px] max-h-[550px] overflow-y-auto pr-2">
-                    {coachMessages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
-                      >
-                        <div className="mb-1 text-xs text-neutral-400 font-mono">
-                          {msg.sender === "user" ? (
-                            "You"
-                          ) : (
-                            <span className="flex items-center gap-1.5 text-white">
-                              <Sparkles className="h-3 w-3" /> PaisaFlow Coach (Gemini 3.5 Flash Lite)
-                            </span>
-                          )}
-                        </div>
-
+                {/* Chat Card (Fixed Viewport with Auto-Scroll) */}
+                <div className="rounded-3xl border border-white/15 bg-gradient-to-b from-[#0D0D0D] to-[#050505] shadow-2xl flex flex-col h-[640px] overflow-hidden">
+                  {/* Messages Stream */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+                    {coachMessages.map((msg) => {
+                      const isUser = msg.sender === "user";
+                      return (
                         <div
-                          className={`max-w-[85%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
-                            msg.sender === "user"
-                              ? "bg-white text-black font-medium shadow-sm"
-                              : "border border-white/15 bg-white/[0.04] text-neutral-200"
-                          }`}
+                          key={msg.id}
+                          className={`flex gap-3.5 ${isUser ? "justify-end" : "justify-start"}`}
                         >
-                          <div>{renderFormattedMessage(msg.content, msg.sender === "user")}</div>
-
-                          {/* Grounded Statement Facts Box */}
-                          {msg.grounded_facts && msg.grounded_facts.length > 0 && (
-                            <div className="mt-4 rounded-xl border border-white/15 bg-black/60 p-3 text-xs text-neutral-300">
-                              <span className="inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] text-white">
-                                <BarChart3 className="h-3.5 w-3.5" /> Statement Proof Facts
-                              </span>
-                              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                {msg.grounded_facts.map((fact, fIdx) => (
-                                  <div key={fIdx} className="flex justify-between rounded bg-white/[0.05] px-2.5 py-1">
-                                    <span className="text-neutral-400">{fact.label}:</span>
-                                    <span className="font-bold text-white">{fact.value}</span>
-                                  </div>
-                                ))}
+                          {/* Coach Avatar */}
+                          {!isUser && (
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 via-indigo-500 to-pink-500 p-[1.5px] shadow-[0_0_15px_rgba(168,85,247,0.35)] shrink-0 mt-0.5">
+                              <div className="h-full w-full rounded-full bg-black flex items-center justify-center">
+                                <Sparkles className="h-4 w-4 text-purple-300" />
                               </div>
                             </div>
                           )}
+
+                          {/* Message Bubble Container */}
+                          <div
+                            className={`flex flex-col ${isUser ? "items-end max-w-[80%]" : "items-start max-w-[85%]"}`}
+                          >
+                            <div
+                              className={`rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
+                                isUser
+                                  ? "rounded-tr-xs bg-white text-black font-medium shadow-md"
+                                  : "rounded-tl-xs border border-white/10 bg-[#131313]/90 text-neutral-200 shadow-xl space-y-3"
+                              }`}
+                            >
+                              {!isUser && (
+                                <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 pb-1.5 border-b border-white/5">
+                                  <span className="flex items-center gap-1.5 text-white font-semibold">
+                                    <Sparkles className="h-3 w-3 text-purple-400" /> PaisaFlow AI Coach
+                                  </span>
+                                  <span className="text-neutral-500">
+                                    {msg.created_at
+                                      ? new Date(msg.created_at).toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                      : "Live"}
+                                  </span>
+                                </div>
+                              )}
+
+                              <div>{renderFormattedMessage(msg.content, isUser)}</div>
+
+                              {/* Grounded Statement Proof Facts Box */}
+                              {!isUser && msg.grounded_facts && msg.grounded_facts.length > 0 && (
+                                <div className="mt-3 rounded-xl border border-white/10 bg-black/60 p-3.5 space-y-2">
+                                  <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-emerald-400 font-bold">
+                                    <BarChart3 className="h-3.5 w-3.5" /> Verified Statement Proof Facts
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                    {msg.grounded_facts.map((fact, fIdx) => (
+                                      <div
+                                        key={fIdx}
+                                        className="flex justify-between items-center rounded-lg bg-white/[0.04] border border-white/5 px-3 py-1.5 text-xs"
+                                      >
+                                        <span className="text-neutral-400">{fact.label}:</span>
+                                        <span className="font-mono font-bold text-white">{fact.value}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Policy and Provenance Notice */}
+                              {!isUser && (
+                                <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 pt-1.5 border-t border-white/5">
+                                  <ShieldCheck className="h-3 w-3 text-neutral-400 shrink-0" />
+                                  <span>Grounded in deterministic Python Decimal calculations. Not certified SEBI advice.</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* User Avatar */}
+                          {isUser && (
+                            <div className="h-8 w-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5 overflow-hidden">
+                              {user?.photoURL ? (
+                                <Image
+                                  src={user.photoURL}
+                                  alt={user.displayName || "User"}
+                                  width={32}
+                                  height={32}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <UserIcon className="h-4 w-4 text-neutral-300" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {/* Reasoning Indicator */}
+                    {coachLoading && (
+                      <div className="flex gap-3.5 justify-start items-center">
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 via-indigo-500 to-pink-500 p-[1.5px] shadow-[0_0_15px_rgba(168,85,247,0.35)] shrink-0">
+                          <div className="h-full w-full rounded-full bg-black flex items-center justify-center">
+                            <Sparkles className="h-4 w-4 text-purple-300 animate-spin" />
+                          </div>
+                        </div>
+                        <div className="rounded-2xl rounded-tl-xs border border-white/10 bg-[#131313]/90 px-4.5 py-3 flex items-center gap-3 shadow-lg">
+                          <div className="flex items-center gap-1">
+                            <span className="h-2 w-2 rounded-full bg-purple-400 animate-bounce [animation-delay:-0.3s]" />
+                            <span className="h-2 w-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:-0.15s]" />
+                            <span className="h-2 w-2 rounded-full bg-pink-400 animate-bounce" />
+                          </div>
+                          <span className="text-xs text-neutral-400 font-mono">
+                            Gemini 3.5 Flash Lite is reasoning over statement numbers...
+                          </span>
                         </div>
                       </div>
-                    ))}
-
-                    {coachLoading && (
-                      <div className="flex items-center gap-2 text-xs text-neutral-400">
-                        <div className="h-3.5 w-3.5 animate-spin rounded-full border border-white border-t-transparent" />
-                        <span>Gemini 3.5 Flash Lite is reasoning over your statement numbers...</span>
-                      </div>
                     )}
+
+                    {/* Auto-Scroll Anchor */}
+                    <div ref={messagesEndRef} className="h-2" />
                   </div>
 
-                  {/* Input Box */}
-                  <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-                    <input
-                      type="text"
-                      placeholder="Ask any question about your statement, expenses, or recurring bills..."
-                      value={coachInput}
-                      onChange={(e) => setCoachInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSendCoachMessage()}
-                      className="flex-1 rounded-full border border-white/20 bg-[#121212] px-5 py-3 text-xs text-white placeholder-neutral-500 focus:border-white focus:outline-none"
-                    />
-                    <button
-                      onClick={() => handleSendCoachMessage()}
-                      disabled={coachLoading || !coachInput.trim()}
-                      className="rounded-full bg-white px-6 py-3 text-xs font-semibold text-black hover:bg-neutral-200 disabled:opacity-50 transition cursor-pointer"
-                    >
-                      Send
-                    </button>
+                  {/* Docked Chat Input Bar */}
+                  <div className="p-4 border-t border-white/10 bg-[#0A0A0A]/95 backdrop-blur-md">
+                    <div className="relative flex items-center rounded-2xl border border-white/15 bg-[#141414] focus-within:border-white/40 focus-within:ring-2 focus-within:ring-white/10 transition px-4 py-2 gap-2 shadow-inner">
+                      <input
+                        type="text"
+                        placeholder="Ask any question about your statement, expenses, or recurring bills..."
+                        value={coachInput}
+                        onChange={(e) => setCoachInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSendCoachMessage()}
+                        className="flex-1 bg-transparent text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none"
+                      />
+                      <button
+                        onClick={() => handleSendCoachMessage()}
+                        disabled={coachLoading || !coachInput.trim()}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-semibold text-black hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer shadow-[0_0_15px_rgba(255,255,255,0.15)]"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                        <span>Send</span>
+                      </button>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-neutral-500 px-1 font-mono">
+                      <span>Press Enter ↵ to send</span>
+                      <span>PaisaFlow • Live Intelligence Engine</span>
+                    </div>
                   </div>
                 </div>
               </div>

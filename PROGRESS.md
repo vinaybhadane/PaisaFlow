@@ -62,18 +62,17 @@ A task is DONE only after relevant tests and acceptance criteria pass.
 | Demo rehearsal | NOT STARTED | |
 
 ## Latest update
-- Date: 2026-10-31
-- Completed: Supabase Cloud Database Migration, Dedicated `/login` with Firebase Google Auth, Authentication Gating, and Landing Page FAQ Polish.
-  - Replaced Azure infrastructure entirely with free Supabase Cloud PostgreSQL.
-  - Successfully migrated all 20 database tables directly to Supabase (`db.utebmighrxwibcxrezpk.supabase.co:5432`) via Alembic.
-  - Configured asyncpg connection pooling with SSL requirement and tested API health endpoint (HTTP 200 `connected`).
-  - Implemented `/login` page with Firebase Google sign-in and reactive redirect.
-  - Strictly gated `/dashboard` so unauthenticated visitors are redirected to `/login`.
-  - Updated landing page header and hero CTAs ("Log in", "Get Started") to route to `/login`.
-  - Removed "Core Capabilities" and "The Living Money Model" from landing page as requested.
-  - Upgraded landing page FAQ into an interactive, modern glassmorphic accordion with category chips and animated state indicators.
-  - Preserved 100% test coverage (80/80 pytest tests PASS), 0 TypeScript errors, 0 ESLint warnings.
-- Next: End-to-end verification and demo rehearsal.
+- Date: 2026-11-01
+- Completed: Vercel Multiple-Services Setup, Gemini 3.5 AI Financial Coach Redesign, Overview Dynamic Month Recalculation & Gemini Subscription Predictive Engine.
+  - Configured `vercel.json` for multi-service deployment (`backend` FastAPI + `frontend` Next.js) with internal service binding `BACKEND_URL` and rewrites.
+  - Added ASGI entrypoints `backend/main.py` and `backend/index.py` for Vercel Serverless Python runtime.
+  - Implemented dynamic statement month detection in `LivingMoneyModelEngine` and `SpendingAnalyzer` to ensure Overview metrics immediately update when statements from any month are committed.
+  - Automated income fact inference on statement confirmation in `ImportService`.
+  - Built `GeminiSubscriptionService` powered by Gemini 3.5 Flash Lite with deterministic calendar-aware next debited date prediction.
+  - Redesigned the AI Coach chat UI: custom fixed viewport (`h-[640px]`), smooth auto-scrolling to newest messages with `messagesEndRef`, markdown bold formatting without raw `**` asterisks, verified statement proof facts grid, animated typing indicators, thread switcher pills, and interactive prompt chips.
+  - Modernized Overview KPI cards with glowing ambient badges, icons (`TrendingUp`, `TrendingDown`, `CreditCard`, `Sparkles`), and high-end FinTech aesthetics.
+  - 100% test coverage: **81/81 backend pytest tests PASS**, 0 TypeScript errors (`tsc --noEmit`), 0 ESLint warnings (`next lint`).
+- Next: Vercel deployment confirmation and live production rehearsal.
 
 ## Update log
 - 2026-10-31: Phase 8 Complete Product Integration, Multi-View Dashboard & Demo Persona Switcher completed (8 dashboard tabs, persona switcher, statement upload & preview, transactions ledger with inline correction & provenance, recurring review controls, insights, forecast, simulator, AI coach, 80/80 pytest PASS, 0 Ruff errors, 0 ESLint errors, clean Next.js production build).
