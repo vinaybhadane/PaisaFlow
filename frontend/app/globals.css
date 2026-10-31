@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --pf-background: #000000;
+  --pf-surface: #0a0a0a;
+  --pf-text: #ffffff;
+  --pf-muted: #9ca3af;
+  --pf-border: rgba(255, 255, 255, 0.1);
+  --pf-primary: #ffffff;
+  --pf-accent: #ffffff;
+  --pf-success: #10b981;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: #000000;
+}
+
+body {
+  margin: 0;
+  background: #000000;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Cinematic text and blending utilities */
+.blend-screen {
+  mix-blend-mode: screen;
+}
+
+.cinematic-glow {
+  text-shadow: 0 0 35px rgba(255, 255, 255, 0.4), 0 4px 20px rgba(0, 0, 0, 0.8);
+}

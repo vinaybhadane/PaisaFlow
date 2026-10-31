@@ -1,0 +1,40 @@
+# Core Web Framework & Validation
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+python-multipart>=0.0.12
+
+# Database & Migrations
+sqlalchemy>=2.0.36
+alembic>=1.14.0
+asyncpg>=0.30.0
+psycopg2-binary>=2.9.10
+pgvector>=0.3.6
+
+# Async Task Queue & Caching
+redis>=5.2.0
+celery>=5.4.0
+
+# Numerical, Statistical & Deterministic Financial Logic
+numpy>=2.1.0
+scipy>=1.14.0
+statsmodels>=0.14.0
+scikit-learn>=1.5.0
+rapidfuzz>=3.10.0
+
+# Data Processing & Statement Extraction
+polars>=1.14.0
+pandas>=2.2.0
+pymupdf>=1.24.0
+pdfplumber>=0.11.0
+faker>=30.8.0
+
+# AI / LLM (Explanations & Structured Extraction)
+google-generativeai>=0.8.3
+
+# Testing & Quality
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+httpx>=0.28.0
+

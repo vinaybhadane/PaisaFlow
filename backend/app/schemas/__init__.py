@@ -1,0 +1,161 @@
+"""Pydantic schemas package."""
+
+from backend.app.schemas.categorization_rule import (
+    CategorizationRuleCreateRequest,
+    CategorizationRuleResponse,
+    CategorizationRuleUpdateRequest,
+    RulePreviewResponse,
+    TransactionCorrectionResponse,
+)
+from backend.app.schemas.category import (
+    CategoryBase,
+    CategoryListResponse,
+    CategoryResponse,
+)
+from backend.app.schemas.coach import (
+    CoachConversationDetail,
+    CoachConversationSummary,
+    CoachMessageRequest,
+    CoachMessageResponse,
+    SuggestedPromptsResponse,
+)
+from backend.app.schemas.common import (
+    ApiError,
+    ApiErrorResponse,
+    ApiMeta,
+    ApiResponse,
+    ErrorDetail,
+)
+from backend.app.schemas.config import ConfigData
+from backend.app.schemas.forecasting import (
+    FinancialForecastResponse,
+    ForecastMonthItemResponse,
+)
+from backend.app.schemas.health import HealthData
+from backend.app.schemas.import_batch import (
+    ImportBatchResponse,
+    ImportConfirmRequest,
+    ImportConfirmResponse,
+    ImportPreviewResponse,
+    NormalizedRowSchema,
+    RejectedRowSchema,
+)
+from backend.app.schemas.insights import (
+    CategorySpendingItemResponse,
+    CategorySpendingResponse,
+    FinancialInsightResponse,
+    MerchantSpendingItemResponse,
+    MonthlyTrendItemResponse,
+)
+from backend.app.schemas.living_model import (
+    DataCoverageResponse,
+    DemoPersonaResponse,
+    FinancialFactCreateRequest,
+    FinancialFactResponse,
+    FinancialFactUpdateRequest,
+    FinancialSummaryResponse,
+    LivingProfileResponse,
+    ProfileSnapshotResponse,
+    SnapshotRecomputeRequest,
+)
+from backend.app.schemas.merchant import (
+    MerchantAliasResponse,
+    MerchantListResponse,
+    MerchantResponse,
+)
+from backend.app.schemas.recurring import (
+    CommitmentReviewRequest,
+    CommitmentUpdateRequest,
+    PriceChangeEventResponse,
+    RecurringCommitmentDetailResponse,
+    RecurringCommitmentResponse,
+    RecurringObservationResponse,
+)
+from backend.app.schemas.simulation import (
+    ScenarioCompareRequest,
+    ScenarioComparisonItem,
+    ScenarioComparisonResponse,
+    ScenarioCreateRequest,
+    ScenarioPeriodImpactsResponse,
+    ScenarioResponse,
+    ScenarioRunRequest,
+    ScenarioUpdateRequest,
+    SimulationRunResponse,
+)
+from backend.app.schemas.transaction import (
+    BulkCategorizeRequest,
+    BulkCategorizeResponse,
+    PaginatedTransactionsResponse,
+    TransactionExplanationResponse,
+    TransactionResponse,
+    TransactionUpdateRequest,
+)
+
+__all__ = [
+    "ApiError",
+    "ApiErrorResponse",
+    "ApiMeta",
+    "ApiResponse",
+    "BulkCategorizeRequest",
+    "BulkCategorizeResponse",
+    "CategorizationRuleCreateRequest",
+    "CategorizationRuleResponse",
+    "CategorizationRuleUpdateRequest",
+    "CategoryBase",
+    "CategoryListResponse",
+    "CategoryResponse",
+    "CategorySpendingItemResponse",
+    "CategorySpendingResponse",
+    "CoachConversationDetail",
+    "CoachConversationSummary",
+    "CoachMessageRequest",
+    "CoachMessageResponse",
+    "CommitmentReviewRequest",
+    "CommitmentUpdateRequest",
+    "ConfigData",
+    "DataCoverageResponse",
+    "DemoPersonaResponse",
+    "ErrorDetail",
+    "FinancialFactCreateRequest",
+    "FinancialFactResponse",
+    "FinancialFactUpdateRequest",
+    "FinancialForecastResponse",
+    "FinancialInsightResponse",
+    "FinancialSummaryResponse",
+    "ForecastMonthItemResponse",
+    "HealthData",
+    "ImportBatchResponse",
+    "ImportConfirmRequest",
+    "ImportConfirmResponse",
+    "ImportPreviewResponse",
+    "LivingProfileResponse",
+    "MerchantAliasResponse",
+    "MerchantListResponse",
+    "MerchantResponse",
+    "MerchantSpendingItemResponse",
+    "MonthlyTrendItemResponse",
+    "NormalizedRowSchema",
+    "PaginatedTransactionsResponse",
+    "PriceChangeEventResponse",
+    "ProfileSnapshotResponse",
+    "RecurringCommitmentDetailResponse",
+    "RecurringCommitmentResponse",
+    "RecurringObservationResponse",
+    "RejectedRowSchema",
+    "RulePreviewResponse",
+    "ScenarioCompareRequest",
+    "ScenarioComparisonItem",
+    "ScenarioComparisonResponse",
+    "ScenarioCreateRequest",
+    "ScenarioPeriodImpactsResponse",
+    "ScenarioResponse",
+    "ScenarioRunRequest",
+    "ScenarioUpdateRequest",
+    "SimulationRunResponse",
+    "SnapshotRecomputeRequest",
+    "SuggestedPromptsResponse",
+    "TransactionCorrectionResponse",
+    "TransactionExplanationResponse",
+    "TransactionResponse",
+    "TransactionUpdateRequest",
+]
