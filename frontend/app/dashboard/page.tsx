@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -35,6 +35,7 @@ import {
   CreditCard,
   RefreshCw,
   TrendingUp,
+  TrendingDown,
   Compass,
   Sliders,
   Bot,
@@ -51,6 +52,10 @@ import {
   LogOut,
   Download,
   X,
+  Calendar,
+  Send,
+  Layers,
+  ShieldCheck,
   User as UserIcon,
 } from "lucide-react";
 import { FloatingTooltip } from "@/components/unlumen-ui/floating-tooltip";
