@@ -123,7 +123,7 @@ export default function LoginPage() {
             Welcome to PaisaFlow
           </h1>
           <p className="mt-2 text-xs text-neutral-400 leading-relaxed max-w-sm mx-auto">
-            Sign in to access your living financial model and converse with your Gemini AI financial coach.
+            Sign in to access your living financial model and converse with your PaisaFlow AI financial coach.
           </p>
         </div>
 

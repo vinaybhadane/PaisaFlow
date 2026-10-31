@@ -132,7 +132,7 @@ const DEFAULT_WELCOME_MESSAGE: CoachMessage = {
   conversation_id: "default",
   sender: "coach",
   content:
-    "Hello! I am your **PaisaFlow AI Financial Coach**, powered live by **Google Gemini 3.5 Flash Lite**.\n\nI analyze your cash flow, recurring commitments, and savings rate grounded exclusively in your uploaded financial statements with deterministic Decimal arithmetic.\n\nAsk me any question below, or select a suggested prompt to explore your statement.",
+    "Hello! I am your **PaisaFlow AI Financial Coach**.\n\nI analyze your cash flow, recurring commitments, and savings rate grounded exclusively in your uploaded financial statements with deterministic Decimal arithmetic.\n\nAsk me any question below, or select a suggested prompt to explore your statement.",
   created_at: new Date().toISOString(),
   is_live_gemini: true,
   warnings: ["PaisaFlow is a personal finance intelligence coach. Not certified SEBI advice."],
@@ -530,7 +530,7 @@ export default function DashboardPage() {
     }
   };
 
-  // AI Financial Coach Chat Handlers (Live Gemini 3.5 Flash Lite)
+  // AI Financial Coach Chat Handlers (Live PaisaFlow AI)
   const handleSendCoachMessage = async (queryText?: string) => {
     const textToSend = queryText || coachInput;
     if (!textToSend.trim() || coachLoading) return;
@@ -578,7 +578,7 @@ export default function DashboardPage() {
           id: `err-${Date.now()}`,
           conversation_id: activeConversationId || "temp",
           sender: "coach",
-          content: `I encountered an issue connecting to Gemini 3.5 Flash Lite: ${msg}. Please ensure your statement has been uploaded.`,
+          content: `I encountered an issue connecting to PaisaFlow AI: ${msg}. Please ensure your statement has been uploaded.`,
           created_at: new Date().toISOString(),
         },
       ]);
@@ -710,34 +710,53 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Navigation Tabs (Flex-Wrap, Zero Horizontal Scroll) */}
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-6 pb-3 pt-1">
-          {[
-            { id: "overview", label: "Overview", icon: LayoutDashboard },
-            { id: "imports", label: "Statement Import", icon: UploadCloud },
-            { id: "transactions", label: "Transactions", icon: CreditCard },
-            { id: "recurring", label: "Subscriptions & Bills", icon: RefreshCw },
-            { id: "insights", label: "Insights & Spending", icon: TrendingUp },
-            { id: "forecast", label: "Forecast", icon: Compass },
-            { id: "simulator", label: "What-If Simulator", icon: Sliders },
-            { id: "coach", label: "Gemini 3.5 Coach", icon: Bot },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium transition cursor-pointer ${isActive
-                    ? "bg-white text-black font-semibold shadow-[0_0_20px_rgba(255,255,255,0.15)]"
-                    : "border border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
+        {/* Navigation Tabs (Modern Segmented Glass Dock with Scale-Up Hover) */}
+        <div className="mx-auto max-w-7xl px-6 pb-4 pt-1">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-[#0d0d0d]/85 p-2 backdrop-blur-xl shadow-2xl">
+            {[
+              { id: "overview", label: "Overview", icon: LayoutDashboard },
+              { id: "imports", label: "Statement Import", icon: UploadCloud },
+              { id: "transactions", label: "Transactions", icon: CreditCard },
+              { id: "recurring", label: "Subscriptions & Bills", icon: RefreshCw },
+              { id: "insights", label: "Insights & Spending", icon: TrendingUp },
+              { id: "forecast", label: "Forecast", icon: Compass },
+              { id: "simulator", label: "What-If Simulator", icon: Sliders },
+              { id: "coach", label: "PaisaFlow AI Coach", icon: Bot, isSpecial: true },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              const isSpecial = tab.isSpecial;
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={`group relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold tracking-wide transition-all duration-200 ease-out cursor-pointer hover:scale-110 hover:-translate-y-0.5 active:scale-95 ${
+                    isActive
+                      ? isSpecial
+                        ? "bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 text-white shadow-[0_0_30px_rgba(168,85,247,0.5)] border border-white/30 scale-105 z-10"
+                        : "bg-white text-black shadow-[0_4px_25px_rgba(255,255,255,0.4)] scale-105 z-10 border border-white"
+                      : isSpecial
+                      ? "border border-purple-500/30 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-indigo-500/10 text-purple-200 hover:border-purple-400/60 hover:bg-purple-500/20 hover:text-white hover:shadow-[0_0_25px_rgba(168,85,247,0.35)]"
+                      : "border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] text-neutral-300 hover:border-white/40 hover:bg-white/[0.14] hover:text-white hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)]"
                   }`}
-              >
-                <Icon className="h-3.5 w-3.5 shrink-0" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+                >
+                  <Icon
+                    className={`h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-125 ${
+                      isActive
+                        ? isSpecial
+                          ? "text-white"
+                          : "text-black"
+                        : isSpecial
+                        ? "text-purple-300 group-hover:text-purple-100"
+                        : "text-neutral-400 group-hover:text-white"
+                    }`}
+                  />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </header>
 
@@ -1015,7 +1034,7 @@ export default function DashboardPage() {
                         <ArrowRight className="h-4 w-4 text-neutral-600 group-hover:text-white group-hover:translate-x-1 transition duration-200" />
                       </div>
                       <h4 className="mt-4 font-semibold text-base text-white group-hover:text-neutral-200">
-                        Ask Gemini 3.5 Flash Lite
+                        Ask PaisaFlow AI
                       </h4>
                       <p className="mt-1.5 text-xs text-neutral-400 leading-relaxed">
                         Conversational coaching grounded in your exact Decimal statement numbers.
@@ -1444,7 +1463,7 @@ export default function DashboardPage() {
                       Subscriptions & Recurring Obligations
                     </h2>
                     <p className="mt-1 text-sm text-neutral-400">
-                      Gemini AI subscription intelligence with automatic next billing date tracking.
+                      PaisaFlow AI subscription intelligence with automatic next billing date tracking.
                     </p>
                   </div>
                   <button
@@ -1453,7 +1472,7 @@ export default function DashboardPage() {
                     className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition disabled:opacity-50 cursor-pointer shadow-sm"
                   >
                     <Sparkles className={`h-3.5 w-3.5 ${detectingSubscriptions ? "animate-spin text-amber-300" : "text-amber-400"}`} />
-                    {detectingSubscriptions ? "Gemini Scanning..." : "AI Scan Subscriptions"}
+                    {detectingSubscriptions ? "PaisaFlow AI Scanning..." : "AI Scan Subscriptions"}
                   </button>
                 </div>
 
@@ -1532,7 +1551,7 @@ export default function DashboardPage() {
                     <Sparkles className="h-8 w-8 text-amber-400/80 mb-3" />
                     <p className="text-base font-medium text-white">No recurring obligations detected yet</p>
                     <p className="mt-1.5 text-xs text-neutral-400 max-w-md">
-                      Upload your statement or click below to have Gemini AI analyze your transaction descriptions, extract subscriptions, and automatically predict their next billing dates.
+                      Upload your statement or click below to have PaisaFlow AI analyze your transaction descriptions, extract subscriptions, and automatically predict their next billing dates.
                     </p>
                     <button
                       onClick={handleDetectSubscriptions}
@@ -1540,7 +1559,7 @@ export default function DashboardPage() {
                       className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-xs font-semibold text-black hover:bg-neutral-200 transition disabled:opacity-50 cursor-pointer"
                     >
                       <Sparkles className="h-3.5 w-3.5" />
-                      {detectingSubscriptions ? "Scanning with Gemini..." : "Scan Statement for Subscriptions"}
+                      {detectingSubscriptions ? "Scanning with PaisaFlow AI..." : "Scan Statement for Subscriptions"}
                     </button>
                   </div>
                 )}
@@ -1816,7 +1835,7 @@ export default function DashboardPage() {
             )}
 
             {/* ========================================================================= */}
-            {/* TAB 8: GEMINI 3.5 FLASH LITE AI FINANCIAL COACH */}
+            {/* TAB 8: PAISAFLOW AI FINANCIAL COACH */}
             {/* ========================================================================= */}
             {activeTab === "coach" && (
               <div className="space-y-6">
@@ -1832,7 +1851,7 @@ export default function DashboardPage() {
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        Gemini 3.5 Flash Lite Live
+                        PaisaFlow AI
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-neutral-400">
@@ -2028,7 +2047,7 @@ export default function DashboardPage() {
                             <span className="h-2 w-2 rounded-full bg-pink-400 animate-bounce" />
                           </div>
                           <span className="text-xs text-neutral-400 font-mono">
-                            Gemini 3.5 Flash Lite is reasoning over statement numbers...
+                            PaisaFlow Coach Thinking...
                           </span>
                         </div>
                       </div>

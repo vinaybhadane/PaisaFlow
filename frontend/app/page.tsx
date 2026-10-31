@@ -47,7 +47,7 @@ const steps = [
   {
     num: "04",
     title: "Plan what comes next",
-    desc: "Simulate what-if decisions and converse with the Gemini AI Coach using 100% deterministic numbers.",
+    desc: "Simulate what-if decisions and converse with the PaisaFlow AI Coach using 100% deterministic numbers.",
     icon: Sliders,
     shape: "rounded-[36px]",
   },
@@ -67,7 +67,7 @@ const faqs = [
   {
     tag: "AI INTEGRITY",
     q: "Does the AI Coach calculate my money or balances?",
-    a: "No. In accordance with PaisaFlow non-negotiable principles, Gemini is used strictly for conversational language assistance. All balances, cash flows, savings rates, and scenario projections are calculated deterministically by backend Python Decimal algorithms.",
+    a: "No. In accordance with PaisaFlow non-negotiable principles, PaisaFlow AI is used strictly for conversational language assistance. All balances, cash flows, savings rates, and scenario projections are calculated deterministically by backend Python Decimal algorithms.",
   },
   {
     tag: "USER CONTROL",
@@ -726,7 +726,7 @@ export default function HomePage() {
               Frequently asked questions.
             </h2>
             <p className="mt-4 text-sm text-neutral-400 max-w-lg mx-auto">
-              Everything you need to know about our deterministic financial calculations, privacy principles, and Gemini AI Coach.
+              Everything you need to know about our deterministic financial calculations, privacy principles, and PaisaFlow AI Coach.
             </p>
           </motion.div>
 
