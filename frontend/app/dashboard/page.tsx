@@ -215,11 +215,17 @@ export default function DashboardPage() {
     "How can I improve my savings rate from my current cash flow?",
   ]);
 
-  // AI Coach Auto-Scroll Ref
+  // AI Coach Auto-Scroll & Viewport Isolation Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatScrollContainerRef.current) {
+      chatScrollContainerRef.current.scrollTo({
+        top: chatScrollContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -227,6 +233,21 @@ export default function DashboardPage() {
       scrollToBottom();
     }
   }, [coachMessages, coachLoading, activeTab, scrollToBottom]);
+
+  // Isolate wheel scrolling: when pointer is over the chatbot, scroll chat history; otherwise scroll page
+  useEffect(() => {
+    const el = chatScrollContainerRef.current;
+    if (!el || activeTab !== "coach") return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.stopPropagation();
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", handleWheel);
+    };
+  }, [activeTab]);
 
   // Overall Loading & Error States
   const [loading, setLoading] = useState<boolean>(true);
@@ -707,11 +728,10 @@ export default function DashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium transition cursor-pointer ${
-                  isActive
+                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium transition cursor-pointer ${isActive
                     ? "bg-white text-black font-semibold shadow-[0_0_20px_rgba(255,255,255,0.15)]"
                     : "border border-white/10 bg-white/[0.04] text-neutral-400 hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
-                }`}
+                  }`}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
                 <span>{tab.label}</span>
@@ -1123,11 +1143,10 @@ export default function DashboardPage() {
                                     </td>
                                     <td className="py-2.5 px-3">
                                       <span
-                                        className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                          row.direction === "credit"
+                                        className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${row.direction === "credit"
                                             ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                                             : "bg-neutral-800 text-neutral-300"
-                                        }`}
+                                          }`}
                                       >
                                         {row.direction}
                                       </span>
@@ -1137,11 +1156,10 @@ export default function DashboardPage() {
                                     </td>
                                     <td className="py-2.5 px-3">
                                       <span
-                                        className={`rounded-full border px-2 py-0.5 text-[10px] ${
-                                          isDuplicate
+                                        className={`rounded-full border px-2 py-0.5 text-[10px] ${isDuplicate
                                             ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
                                             : "border-white/15 bg-white/5 text-neutral-300"
-                                        }`}
+                                          }`}
                                       >
                                         {isDuplicate ? "Duplicate" : "New"}
                                       </span>
@@ -1232,11 +1250,10 @@ export default function DashboardPage() {
                               </td>
                               <td className="py-3 px-4">
                                 <span
-                                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                    tx.direction === "credit"
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${tx.direction === "credit"
                                       ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                                       : "bg-neutral-800 text-neutral-300"
-                                  }`}
+                                    }`}
                                 >
                                   {tx.direction}
                                 </span>
@@ -1453,11 +1470,10 @@ export default function DashboardPage() {
                               {c.cadence}
                             </span>
                             <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                                c.status === "confirmed"
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${c.status === "confirmed"
                                   ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                                   : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                              }`}
+                                }`}
                             >
                               {c.status}
                             </span>
@@ -1631,9 +1647,8 @@ export default function DashboardPage() {
                       <button
                         key={h}
                         onClick={() => setForecastHorizon(h)}
-                        className={`rounded-full px-3 py-1 font-medium transition cursor-pointer ${
-                          forecastHorizon === h ? "bg-white text-black" : "text-neutral-400 hover:text-white"
-                        }`}
+                        className={`rounded-full px-3 py-1 font-medium transition cursor-pointer ${forecastHorizon === h ? "bg-white text-black" : "text-neutral-400 hover:text-white"
+                          }`}
                       >
                         {h}M
                       </button>
@@ -1847,11 +1862,10 @@ export default function DashboardPage() {
                         <div
                           key={conv.id}
                           onClick={() => handleSelectConversation(conv.id)}
-                          className={`group flex items-center gap-2 rounded-full border px-3.5 py-1.5 transition cursor-pointer shrink-0 ${
-                            isActive
+                          className={`group flex items-center gap-2 rounded-full border px-3.5 py-1.5 transition cursor-pointer shrink-0 ${isActive
                               ? "border-white/40 bg-white/15 text-white font-medium shadow-[0_0_15px_rgba(255,255,255,0.08)]"
                               : "border-white/10 bg-white/[0.03] text-neutral-400 hover:border-white/25 hover:text-white"
-                          }`}
+                            }`}
                         >
                           <MessageSquare className="h-3 w-3 shrink-0" />
                           <span className="max-w-[140px] truncate text-xs">{conv.title}</span>
@@ -1892,10 +1906,17 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Chat Card (Fixed Viewport with Auto-Scroll) */}
-                <div className="rounded-3xl border border-white/15 bg-gradient-to-b from-[#0D0D0D] to-[#050505] shadow-2xl flex flex-col h-[640px] overflow-hidden">
+                {/* Chat Card (Fixed Viewport with Isolated Scroll) */}
+                <div
+                  data-lenis-prevent="true"
+                  className="lenis-prevent rounded-3xl border border-white/15 bg-gradient-to-b from-[#0D0D0D] to-[#050505] shadow-2xl flex flex-col h-[640px] overflow-hidden"
+                >
                   {/* Messages Stream */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+                  <div
+                    ref={chatScrollContainerRef}
+                    data-lenis-prevent="true"
+                    className="lenis-prevent flex-1 min-h-0 overflow-y-scroll p-6 space-y-6 overscroll-contain chat-scrollbar"
+                  >
                     {coachMessages.map((msg) => {
                       const isUser = msg.sender === "user";
                       return (
@@ -1917,11 +1938,10 @@ export default function DashboardPage() {
                             className={`flex flex-col ${isUser ? "items-end max-w-[80%]" : "items-start max-w-[85%]"}`}
                           >
                             <div
-                              className={`rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
-                                isUser
+                              className={`rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${isUser
                                   ? "rounded-tr-xs bg-white text-black font-medium shadow-md"
                                   : "rounded-tl-xs border border-white/10 bg-[#131313]/90 text-neutral-200 shadow-xl space-y-3"
-                              }`}
+                                }`}
                             >
                               {!isUser && (
                                 <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 pb-1.5 border-b border-white/5">
@@ -1931,9 +1951,9 @@ export default function DashboardPage() {
                                   <span className="text-neutral-500">
                                     {msg.created_at
                                       ? new Date(msg.created_at).toLocaleTimeString([], {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                        })
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })
                                       : "Live"}
                                   </span>
                                 </div>
