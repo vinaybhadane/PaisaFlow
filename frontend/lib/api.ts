@@ -4,26 +4,45 @@
  */
 
 export function getApiBaseUrl(): string {
-  // 1. Explicitly configured via environment variable
-  if (process.env.NEXT_PUBLIC_API_URL) {
+  // 1. Client-side in browser
+  if (typeof window !== "undefined") {
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    if (isLocalhost) {
+      return process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
+    }
+
+    // On deployed production domains (e.g. paisaflow06.vercel.app),
+    // NEVER point to localhost! Always use relative path routed via vercel.json rewrites,
+    // unless an explicit remote HTTPS URL is configured.
+    const configuredUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (
+      configuredUrl &&
+      !configuredUrl.includes("localhost") &&
+      !configuredUrl.includes("127.0.0.1")
+    ) {
+      return configuredUrl;
+    }
+
+    return "/api/v1";
+  }
+
+  // 2. Server-side in Node.js (Vercel service binding)
+  if (process.env.BACKEND_URL) {
+    return `${process.env.BACKEND_URL}/api/v1`;
+  }
+
+  if (
+    process.env.NEXT_PUBLIC_API_URL &&
+    !process.env.NEXT_PUBLIC_API_URL.includes("localhost") &&
+    !process.env.NEXT_PUBLIC_API_URL.includes("127.0.0.1")
+  ) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
-  // 2. Server-side in Node.js (Vercel service binding)
-  if (typeof window === "undefined") {
-    if (process.env.BACKEND_URL) {
-      return `${process.env.BACKEND_URL}/api/v1`;
-    }
-    return "http://127.0.0.1:8000/api/v1";
-  }
-  // 3. Client-side in local browser development
-  if (
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  ) {
-    return "http://127.0.0.1:8000/api/v1";
-  }
-  // 4. Client-side production on Vercel: use relative path routed via vercel.json rewrites
-  return "/api/v1";
+
+  return "http://127.0.0.1:8000/api/v1";
 }
 
 let currentUserId: string | null = null;

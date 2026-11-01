@@ -118,7 +118,19 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
     )
 
 
-# Root level /health route
+# Root level ping routes for Vercel health probes
+@app.get("/", tags=["Health"])
+@app.get("/api", tags=["Health"])
+async def root_ping():
+    return {
+        "status": "ok",
+        "app": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "environment": settings.APP_ENV,
+    }
+
+
+# Health check routes (supports /, /api, /api/v1, and /v1 aliases)
 app.add_api_route(
     "/health",
     health_check,
@@ -127,7 +139,18 @@ app.add_api_route(
     tags=["Health"],
     summary="Application Health Check",
 )
+app.add_api_route(
+    "/api/health",
+    health_check,
+    methods=["GET"],
+    response_model=ApiResponse[HealthData],
+    tags=["Health"],
+    summary="Application Health Check (API alias)",
+    include_in_schema=False,
+)
 
-# API v1 routes
+# API v1 routes (mounted under /api/v1 and /v1 for Vercel rewrite compatibility)
 app.include_router(api_v1_router, prefix=settings.API_V1_STR)
+app.include_router(api_v1_router, prefix="/v1", include_in_schema=False)
+
 
